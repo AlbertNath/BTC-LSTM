@@ -1,5 +1,3 @@
-
-
 # Establecer tema oscuro de gráficos
 itz::Plot("col.background", "#151924")
 itz::Plot("alp.backlines", 0.1)

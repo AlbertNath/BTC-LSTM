@@ -25,7 +25,7 @@ save_arrow(
     file='test\\data',  # Ubicación del archivo de salida
     name='dataBTC',  # Nombre del archivo de salida sin extensión
     # Tamaño máximo MB (por defecto 100, el tamaño máximo en GihHub)
-    mbytes=0.01
+    mbytes=0.05
 )
 
 ############ Ejemplo de leer sub-bases de datos guardadas con save_arrow ############
@@ -55,16 +55,15 @@ data.equals(data2)
 
 ############ BASES DE DATOS LIMPIAS Y LISTAS PARA USAR  \o\ ###########
 
-# Temporalidad de 1m: 3,247,057 de renglones
+# Temporalidad de 1m: 3,247,780 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_1m')
 
-# Temporalidad de 30m: 108,236 de renglones
+# Temporalidad de 15m: 216,520 de renglones
+load_arrow('data\\02 clean', 'BTCUSDT_15m')
+
+# Temporalidad de 30m: 108,260 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_30m')
 
-# Temporalidad de 1h: 54,118 de renglones
+# Temporalidad de 1h: 54,130 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_1h')
 
-
-############ Estandarización ###########
-
-# ...proximamente
