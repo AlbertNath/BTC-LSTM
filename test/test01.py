@@ -55,15 +55,17 @@ data.equals(data2)
 
 ############ BASES DE DATOS LIMPIAS Y LISTAS PARA USAR  \o\ ###########
 
-# Temporalidad de 1m: 3,247,780 de renglones
+# Temporalidad de 1m: 3,247,838 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_1m')
 
-# Temporalidad de 15m: 216,520 de renglones
+# Temporalidad de 15m: 216,523 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_15m')
 
-# Temporalidad de 30m: 108,260 de renglones
+# Temporalidad de 30m: 108,262 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_30m')
 
-# Temporalidad de 1h: 54,130 de renglones
+# Temporalidad de 1h: 54,131 de renglones
 load_arrow('data\\02 clean', 'BTCUSDT_1h')
 
+# Temporalidad de 1d: 2,256de renglones
+load_arrow('data\\02 clean', 'BTCUSDT_1d')

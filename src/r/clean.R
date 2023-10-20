@@ -96,31 +96,22 @@ clean_data <- function(data, left.lag = 1, right.lag = 2, scalet = 60000) { # no
   )
 }
 
+temporality <- c("1m", "15m", "30m", "1h", "1d")
+symbol <- "BTCUSDT"
+filein <- "data/01 download"
+fileout <- "data/02 clean"
+block <- "data/info"
+mbytes <- 50 # Tamaño recomendado por GitHub
 
-reticulate::use_python("C:\\Python311")
-reticulate::source_python("src\\python\\util\\basic.py")
-
-
-# Limpieza de datos para intervalo de 1 minuto
-clean <- clean_data(load_arrow("data\\01 download", "BTCUSDT_1m"))
-save_arrow(clean$data, "data\\02 clean\\", "BTCUSDT_1m")
-write.csv(clean$block, "data/info/block_BTCUSDT_1m.csv")
-
-# Limpieza de datos para intervalo de 15 minutos
-clean <- clean_data(load_arrow("data\\01 download", "BTCUSDT_15m"))
-save_arrow(clean$data, "data\\02 clean\\", "BTCUSDT_15m")
-write.csv(clean$block, "data/info/block_BTCUSDT_15m.csv")
-
-
-# Limpieza de datos para intervalo de 30 minutos
-clean <- clean_data(load_arrow("data\\01 download", "BTCUSDT_30m"))
-save_arrow(clean$data, "data\\02 clean\\", "BTCUSDT_30m")
-write.csv(clean$block, "data/info/block_BTCUSDT_30m.csv")
-
-# Limpieza de datos para intervalo de 1 hora
-clean <- clean_data(load_arrow("data\\01 download", "BTCUSDT_1h"))
-save_arrow(clean$data, "data\\02 clean\\", "BTCUSDT_1h")
-write.csv(clean$block, "data/info/block_BTCUSDT_1h.csv")
+for (temp in temporality) {
+  name <- paste0(symbol, "_", temp)
+  clean <- clean_data(load_arrow(filein, name))
+  save_arrow(clean$data, fileout, name, mbytes)
+  write.csv(
+    clean$block,
+    file.path(block, paste0("block_", symbol, "_", temp, ".csv"))
+  )
+}
 
 ##### Gráficas #####
 
