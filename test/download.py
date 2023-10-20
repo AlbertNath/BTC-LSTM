@@ -1,4 +1,4 @@
-import pandas as pd
+
 from src.python.util.binance import download
 from src.python.util.basic import save_arrow
 
@@ -24,3 +24,4 @@ for interval in temporality:
         name=f'{symbol}_{interval}',
         mbytes=mbytes
     )
+

@@ -1,5 +1,4 @@
 
-from src.python.util.basic import save_arrow
 from dateutil.relativedelta import relativedelta
 from binance.client import Client
 import time as sys_time

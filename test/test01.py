@@ -22,7 +22,7 @@ data = download(
 
 save_arrow(
     data=data,  # Base de datos
-    file='test\\data',  # Ubicación del archivo de salida
+    file='test\\.trash',  # Ubicación del archivo de salida
     name='dataBTC',  # Nombre del archivo de salida sin extensión
     # Tamaño máximo MB (por defecto 100, el tamaño máximo en GihHub)
     mbytes=0.05
@@ -31,15 +31,15 @@ save_arrow(
 ############ Ejemplo de leer sub-bases de datos guardadas con save_arrow ############
 
 data1 = load_arrow(
-    file='test\\data',  # Ubicación del archivo
+    file='test\\.trash',  # Ubicación del archivo
     name='dataBTC'  # Nombre del archivo sin extensión
 )
 
 ###### Prueba de que parece que si funciona XD ############
 
 # Guardamos otro grupo con diferente tamaño máximo:
-save_arrow(data, 'test\\data', 'dataBTC', 0.1)
-data2 = load_arrow('test\\data', 'dataBTC')
+save_arrow(data, 'test\\.trash', 'dataBTC', 0.1)
+data2 = load_arrow('test\\.trash', 'dataBTC')
 
 # data, data1 y data2 deben de ser iguales:
 data.equals(data1)
