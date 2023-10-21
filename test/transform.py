@@ -35,7 +35,9 @@ def lag(src, n=0):
         return src[:-n]
     return src[-n:]
 
+
+
 src = data['Volume']
-lag(src, 1)
+lag(src, 2)
 
 len(src)
