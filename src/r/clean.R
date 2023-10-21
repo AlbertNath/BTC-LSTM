@@ -117,7 +117,7 @@ for (temp in temporality) {
 
 source("src/r/util/plot.R")
 
-attach(load_arrow("data\\02 clean", "BTCUSDT_1h"))
+attach(load_arrow("data/02 clean", "BTCUSDT_1h"))
 
 graph <- new.graph()$
   candlestick(Open, High, Low, Close)

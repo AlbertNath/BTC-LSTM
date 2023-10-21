@@ -7,7 +7,7 @@
 source("src/r/util/basic.R")
 source("src/r/util/plot.R")
 
-data <- load_arrow("data\\02 clean", "BTCUSDT_1h")
+data <- load_arrow("data/02 clean", "BTCUSDT_1h")
 
 
 # Función para graficar estadísticas de muestreos aleatorios
