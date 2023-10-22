@@ -75,13 +75,25 @@ def sample(src, level, deep=1):
         'window': window
     }
 
+
+# Función que calcula la Media Móvil Exponencial (EMA)
+
+def ema(series, n):
+    alpha = 2 / (n + 1)
+    ema = [series[0]]
+    for i in range(1, len(series)):
+        ema_value = (series[i] - ema[i - 1]) * alpha + ema[i - 1]
+        ema.append(ema_value)
+    return pd.Series(ema, index=series.index)
+
+
 # Función que calcula la Media Móvil Simple (SMA)
 
 
 def sma(src, n=1):
     if (n > 1):
         return src.rolling(window=n).mean()
-    return src
+    return src.copy()
 
 
 # Función que calcula la Desviación Móvil Simple (SMD)
@@ -96,7 +108,7 @@ def smd(src, n=1):
 
 def lag(src, n=0):
     if n == 0:
-        return src
+        return src.copy()
     nas = pd.Series([float("nan") for _ in range(abs(n))])
     if n > 0:
         lagged = pd.concat([nas, src[:-n]])
@@ -120,53 +132,54 @@ def normalizer(src, n, lg=1):
         'std': std,
         'src': src
     }
+
+
 def scaler(data):
     min_val = data.min()
     max_val = data.max()
     data_scaled = (data - min_val) / (max_val - min_val)
     return data_scaled
 
-def data_transformer(data, n=2880, mindate="2018-01-01", scalet=60000):
+
+def data_transformer(data, n=2880, mindate='2018-02-10', scalet=60000):
     df = pd.DataFrame()
     hl2 = (data['High'] + data['Low']) / 2
-    df['Time'] = data["Time"]
-    df['Open'] = data["Open"]
-    df['High'] = data["High"]
-    df['Low'] = data["Low"]
-    df['Close'] = data["Close"]
+    df['Time'] = data['Time']
+    df['Open'] = data['Open']
+    df['High'] = data['High']
+    df['Low'] = data['Low']
+    df['Close'] = data['Close']
     ####### LOGARITMO DE VARIABLES ######
-    df['Open_Log'] = np.log(data["Open"])
-    df['High_Log'] = np.log(data["High"])
-    df['Low_Log'] = np.log(data["Low"])
-    df['Close_Log'] = np.log(data["Close"])
-    df['HL2_Log'] = np.log(hl2)
-    df['Volume_Log'] = np.log(5 + data["Volume"])
+    df['Open_Log'] = np.log(data['Open'])
+    df['High_Log'] = np.log(data['High'])
+    df['Low_Log'] = np.log(data['Low'])
+    df['Close_Log'] = np.log(data['Close'])
+    df['Volume_Log'] = np.log(5 + data['Volume'])
     ####### NORMALIZACIÓN DE PRECIOS ######
     price_normalizer = normalizer(hl2, n)
-    norm = price_normalizer["norm"]
-    df['Open_Norm'] = norm(data["Open"])
-    df['High_Norm'] = norm(data["High"])
-    df['Low_Norm'] = norm(data["Low"])
-    df['Close_Norm'] = norm(data["Close"])
-    df['HL2_Norm'] = norm(hl2)
+    norm = price_normalizer['norm']
+    df['Open_Norm'] = norm(data['Open'])
+    df['High_Norm'] = norm(data['High'])
+    df['Low_Norm'] = norm(data['Low'])
+    df['Close_Norm'] = norm(data['Close'])
     ####### NORMALIZACIÓN DE VOLUMEN ######
     volume_normalizer = normalizer(
-        data["Volume"], n)  # normalizador de precios
-    df['Volume_Norm'] = volume_normalizer["norm"](data["Volume"])
+        data['Volume'], n)  # normalizador de precios
+    df['Volume_Norm'] = volume_normalizer['norm'](data['Volume'])
     ####### TRANSFORMACIÓN DE VARIABLES ######
-    df['Filled_MA'] = sma(data["Filled"], 2*n-2)
-    df['Volume_Qty'] = (data["Volume"] /
-                        (data["Volume"] + data["VolumeUSDT"] / data["Close"]))
-    df['Taker_Prop'] = (data["TakerVolumeUSDT"] /
-                        (data["Volume"] + data["TakerVolumeUSDT"]))
-    df['Volume_Trade'] = data["Volume"] / data["Trades"]
+    df['Filled_MA'] = ema(data['Filled'], 2 * n - 2)
+    df['Volume_Qty'] = (data['Volume'] /
+                        (data['Volume'] + data['VolumeUSDT'] / data['Close']))
+    df['Taker_Prop'] = (data['TakerVolumeUSDT'] /
+                        (data['Volume'] + data['TakerVolumeUSDT']))
+    df['Volume_Trade'] = data['Volume'] / data['Trades']
     mintime = pd.Timestamp(mindate).timestamp() * 1000 / scalet
     minindex = max(2 * n - 2, (data['Time'] >= mintime).idxmax())
     time = df['Time']
     df = scaler(df.iloc[minindex:])
     df['Time'] = time
     return {
-        'data': df,
-        'price_normalizer': price_normalizer,
-        'volume_normalizer': volume_normalizer
+        "data": df,
+        "price_normalizer": price_normalizer,
+        "volume_normalizer": volume_normalizer
     }
