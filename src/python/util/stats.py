@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 import random
@@ -118,4 +119,54 @@ def normalizer(src, n, lg=1):
         'mean': mean,
         'std': std,
         'src': src
+    }
+def scaler(data):
+    min_val = data.min()
+    max_val = data.max()
+    data_scaled = (data - min_val) / (max_val - min_val)
+    return data_scaled
+
+def data_transformer(data, n=2880, mindate="2018-01-01", scalet=60000):
+    df = pd.DataFrame()
+    hl2 = (data['High'] + data['Low']) / 2
+    df['Time'] = data["Time"]
+    df['Open'] = data["Open"]
+    df['High'] = data["High"]
+    df['Low'] = data["Low"]
+    df['Close'] = data["Close"]
+    ####### LOGARITMO DE VARIABLES ######
+    df['Open_Log'] = np.log(data["Open"])
+    df['High_Log'] = np.log(data["High"])
+    df['Low_Log'] = np.log(data["Low"])
+    df['Close_Log'] = np.log(data["Close"])
+    df['HL2_Log'] = np.log(hl2)
+    df['Volume_Log'] = np.log(5 + data["Volume"])
+    ####### NORMALIZACIÓN DE PRECIOS ######
+    price_normalizer = normalizer(hl2, n)
+    norm = price_normalizer["norm"]
+    df['Open_Norm'] = norm(data["Open"])
+    df['High_Norm'] = norm(data["High"])
+    df['Low_Norm'] = norm(data["Low"])
+    df['Close_Norm'] = norm(data["Close"])
+    df['HL2_Norm'] = norm(hl2)
+    ####### NORMALIZACIÓN DE VOLUMEN ######
+    volume_normalizer = normalizer(
+        data["Volume"], n)  # normalizador de precios
+    df['Volume_Norm'] = volume_normalizer["norm"](data["Volume"])
+    ####### TRANSFORMACIÓN DE VARIABLES ######
+    df['Filled_MA'] = sma(data["Filled"], 2*n-2)
+    df['Volume_Qty'] = (data["Volume"] /
+                        (data["Volume"] + data["VolumeUSDT"] / data["Close"]))
+    df['Taker_Prop'] = (data["TakerVolumeUSDT"] /
+                        (data["Volume"] + data["TakerVolumeUSDT"]))
+    df['Volume_Trade'] = data["Volume"] / data["Trades"]
+    mintime = pd.Timestamp(mindate).timestamp() * 1000 / scalet
+    minindex = max(2 * n - 2, (data['Time'] >= mintime).idxmax())
+    time = df['Time']
+    df = scaler(df.iloc[minindex:])
+    df['Time'] = time
+    return {
+        'data': df,
+        'price_normalizer': price_normalizer,
+        'volume_normalizer': volume_normalizer
     }
