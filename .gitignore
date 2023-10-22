@@ -1,7 +1,8 @@
 # Ignorar archivos personales
 .itz/
-.py
 .R
+.py
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
