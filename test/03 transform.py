@@ -1,32 +1,33 @@
 '''
 TRANSFORMACIÓN DE DATOS
 '''
-
-import os
-import json
 from src.python.util.stats import data_transformer
 from src.python.util.basic import load_arrow
 from src.python.util.basic import save_arrow
+from src.python.util.basic import load_json
+from src.python.util.basic import save_json
+import os
 
-with open('test/param.json', 'r') as json_file:
-    param = json.load(json_file)
+par = load_json('src/python/util/parameters.json')
 
-symbol = 'BTCUSDT'
-filein = 'data/02 clean'
-fileout = 'data/03 transform'
-mbytes = 50  # Tamaño recomendado por GitHub
-
-for interval in param['temporality']:
-    name = f'BTCUSDT_{interval}'
-    clean = load_arrow(filein, name)
-    transf = data_transformer(clean)
+par["scale time"]
+for interval in par['temporality']:
+    name = par['market symbol'] + f'_{interval}'
+    clean = load_arrow(par["clean file"], name)
+    transf = data_transformer(
+        clean,
+        n=par["normalization window"],
+        mindate=par["minimum date"],
+        level=par["confidence range level"],
+        test=par["test data ratio"],
+        timescale=par["time scale"]
+    )
     save_arrow(
         data=transf['data'],
-        file=fileout,
-        name=f'{symbol}_{interval}',
-        mbytes=mbytes
+        file=par["transform file"],
+        name=par['market symbol'] + f'_{interval}',
+        mbytes=par["megabytes limit"]
     )
-    archivo_json = os.path.join(
-        'data/info', "RANGE_"+symbol+'_'+interval+'.json')
-    with open(archivo_json, 'w') as file:
-        json.dump(transf['range'], file, indent=4)
+    json_file = os.path.join(
+        par["info file"], "RANGE_" + par['market symbol'] + '_' + interval + '.json')
+    save_json(json_file,  transf['range'])

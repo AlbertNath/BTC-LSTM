@@ -12,20 +12,14 @@
 ##### limpieza ####
 source("src/r/util/basic.R")
 
-param <- jsonlite::fromJSON("test/param.json")
+par <- jsonlite::fromJSON("src/python/util/parameters.json")
 
-symbol <- "BTCUSDT"
-filein <- "data/01 download"
-fileout <- "data/02 clean"
-block <- "data/info"
-mbytes <- 50 # Tamaño recomendado por GitHub
-
-for (temp in param$temporality) {
-  name <- paste0(symbol, "_", temp)
-  clean <- clean_data(load_arrow(filein, name))
-  save_arrow(clean$data, fileout, name, mbytes)
+for (temp in par$temporality) {
+  name <- paste0(par$"market symbol", "_", temp)
+  clean <- clean_data(load_arrow(par$"download file", name))
+  save_arrow(clean$data, par$"clean file", name, par$"megabytes limit")
   write.csv(
     clean$block,
-    file.path(block, paste0("BLOCK_", symbol, "_", temp, ".csv"))
+    file.path(par$"info file", paste0("BLOCK_", symbol, "_", temp, ".csv"))
   )
 }

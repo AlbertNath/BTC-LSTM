@@ -139,7 +139,7 @@ def normalizer(src, n, n_lag=1):
     }
 
 
-def data_transformer(data, n=2880, mindate='2018-02-12', test=20, level=99, scalet=60000):
+def data_transformer(data, n=2880, mindate='2018-02-12', level=99, test=20, timescale=60000):
     df = pd.DataFrame()
     ####### Conjunto TOHLCV ######
     df['Time'] = data['Time']
@@ -174,7 +174,7 @@ def data_transformer(data, n=2880, mindate='2018-02-12', test=20, level=99, scal
     norm = normalizer(df['Volume_Trade'], n, n_lag=0)['norm']
     df['Volume_Trade_Norm'] = norm(df['Volume_Trade'])
     df['Quality'] = ema(1-data['Filled'], 2 * n - 2)
-    mintime = pd.Timestamp(mindate).timestamp() * 1000 / scalet
+    mintime = pd.Timestamp(mindate).timestamp() * 1000 / timescale
     minindex = max(2 * n - 2, (data['Time'] >= mintime).idxmax())
     df = df.iloc[minindex:]
     ####### Rangos de estandarización ######

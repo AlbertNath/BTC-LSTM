@@ -1,10 +1,11 @@
 import re
 import os
 import math
+import json
 import pandas as pd
 
-# Función para guardar una base de datos en sub-bases de tamaño máximo
 
+# Función para guardar una base de datos en sub-bases de tamaño máximo
 
 def save_arrow(data, file, name, mbytes=100):
     # Se calcula el tamaño máximo de cada subase
@@ -39,3 +40,13 @@ def load_arrow(file, name):
             df = pd.read_feather(os.path.join(file, filename))
             data_list.append(df)
     return pd.concat(data_list)
+
+
+def save_json(file, dict):
+    with open(file, 'w') as file:
+        json.dump(dict, file, indent=4)
+
+
+def load_json(file):
+    with open(file, 'r') as file:
+        return json.load(file)

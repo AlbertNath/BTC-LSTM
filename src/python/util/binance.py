@@ -28,7 +28,7 @@ client = Client()
 # Función para obtener klines históricos de un par de activos y un intervalo de tiempo
 
 
-def _get_klines(start_time, end_time, symbol='BTCUSDT', interval='1m', limit=1000, scalet=60000):
+def _get_klines(start_time, end_time, symbol='BTCUSDT', interval='1m', limit=1000, timescale=60000):
     klines_list = client.get_klines(
         symbol=symbol,
         interval=interval,
@@ -40,7 +40,7 @@ def _get_klines(start_time, end_time, symbol='BTCUSDT', interval='1m', limit=100
     for klines in klines_list:
         data.append(
             [
-                klines[0]/scalet,
+                klines[0]/timescale,
                 float(klines[1]),
                 float(klines[2]),
                 float(klines[3]),
@@ -54,8 +54,8 @@ def _get_klines(start_time, end_time, symbol='BTCUSDT', interval='1m', limit=100
         )
     if data:
         return {'data': data,
-                'start': pd.Timestamp(scalet*data[0][0], unit='ms'),
-                'end': pd.Timestamp(scalet*data[len(data)-1][0], unit='ms')}
+                'start': pd.Timestamp(timescale*data[0][0], unit='ms'),
+                'end': pd.Timestamp(timescale*data[len(data)-1][0], unit='ms')}
     return {'data': data,
             'start': start_time,
             'end': end_time}
@@ -63,7 +63,7 @@ def _get_klines(start_time, end_time, symbol='BTCUSDT', interval='1m', limit=100
 # Función para descargar datos en un rango de fechas y con un intervalo de tiempo dado
 
 
-def download(start, end, symbol='BTCUSDT', interval='1m', limit=1000, unit='s'):
+def download(start, end, symbol='BTCUSDT', interval='1m', limit=1000, timescale=60000, unit='s'):
     start = pd.Timestamp(start, unit=unit)
     end = min(pd.Timestamp(end, unit=unit), pd.Timestamp.now())
     start_time = start
@@ -79,7 +79,8 @@ def download(start, end, symbol='BTCUSDT', interval='1m', limit=1000, unit='s'):
                                   end_time=end_time,
                                   symbol=symbol,
                                   interval=interval,
-                                  limit=limit)
+                                  limit=limit,
+                                  timescale=timescale)
         data += klines_list['data']
         diftime = sys_time.time()-seconds
         percen = int(100*((end_time - start)/(end-start)))
