@@ -236,3 +236,113 @@ heikin_ashi <- function(o, h, l, c) {
   colnames(mat) <- c("Open", "High", "Low", "Close")
   mat
 }
+
+
+# Función de interpolación lineal
+lineal <- function(start, end, a, b = NULL, from = NULL, to = NULL) {
+  b <- itz::isnt.null(b, a)
+  return(
+    reparam( # nolint
+      start:end,
+      from = itz::isnt.null(from, c(start - 1, end + 1)),
+      to = itz::isnt.null(to, c(a[start - 1], b[end + 1]))
+    )
+  )
+}
+
+# Función completar ceros en una serie con base en
+# la media de los valores previos
+fix_zeros <- function(src) {
+  difzero <- diff(src == 0)
+  start <- 1 + which((difzero == 1))
+  end <- (which(difzero == -1))
+  end <- if (start[1] > end[1]) end[-1] else end
+  end <- if (length(start) > length(end)) c(end, length(src)) else end
+  n <- length(start)
+  for (i in 1:n) {
+    ival <- start[i]:end[i]
+    lag_ival <- ival - end[i] + start[i] - 1
+    src[ival] <- mean(src[lag_ival], na.rm = TRUE)
+  }
+  src
+}
+
+# Función para aproximar de forma lineal los datos faltantes
+clean_data <- function(data, left.lag = 1, right.lag = 2, scalet = 60000) { # nolint
+  interval <- min(diff(data$Time))
+  index <- (interval + data$Time - min(data$Time)) / interval
+  time <- min(data$Time) + seq(0, max(index) - 1) * interval
+  open <- NULL
+  high <- NULL
+  low <- NULL
+  close <- NULL
+  volume <- NULL
+  volume_usdt <- NULL
+  taker_volume <- NULL
+  taker_volume_usdt <- NULL
+  trades <- NULL
+  open[index] <- data$Open
+  high[index] <- data$High
+  low[index] <- data$Low
+  close[index] <- data$Close
+  volume[index] <- data$Volume
+  volume_usdt[index] <- data$VolumeUSDT
+  taker_volume[index] <- data$TakerVolume
+  taker_volume_usdt[index] <- data$TakerVolumeUSDT
+  trades[index] <- data$Trades
+  filled <- rep(0, max(index))
+  jumps <- which(diff(index) > 1) + 1
+  hl2 <- (close + high) / 2
+  ##### Complatar datos faltantes
+  for (i in jumps) {
+    start <- index[i - 1] - left.lag + 1
+    end <- index[i] + right.lag - 1
+    ival <- start:end
+    lag_ival <- ival - end + start - 1
+    filled[ival] <- 1
+    close[ival] <- lineal(start, end, close, open, from = c(start - 1, end))
+    open[ival] <- close[ival - 1]
+    med <- lineal(start, end, hl2)
+    vol <- mean((high[lag_ival] - low[lag_ival]) / 2)
+    high[ival] <- pmax(med + vol, open[ival], close[ival])
+    low[ival] <- pmin(med - vol, open[ival], close[ival])
+    volume[ival] <- mean(volume[lag_ival])
+    volume_usdt[ival] <- mean(volume_usdt[lag_ival])
+    taker_volume[ival] <- mean(taker_volume[lag_ival])
+    taker_volume_usdt[ival] <- mean(taker_volume_usdt[lag_ival])
+    trades[ival] <- mean(trades[lag_ival])
+  }
+  ##### Complatar Volumen cero
+  volume <- fix_zeros(volume)
+  volume_usdt <- fix_zeros(volume_usdt)
+  taker_volume <- fix_zeros(taker_volume)
+  taker_volume_usdt <- fix_zeros(taker_volume_usdt)
+  trades <- fix_zeros(trades)
+  #####
+  start <- c(1, which(diff(filled) == -1) + 1)
+  end <- c(which(diff(filled) == 1), length(filled))
+  return(
+    list(
+      block = data.frame(
+        Date = as.POSIXct(time[start] * scalet / 1000, tz = "UTC"),
+        Start = start - 1,
+        End = end - 1,
+        Size = end - start + 1,
+        Filled = c(diff(cumsum(filled)[start]), 0)
+      ),
+      data = data.frame(
+        Time = time,
+        Open = open,
+        High = high,
+        Low = low,
+        Close = close,
+        Volume = volume,
+        VolumeUSDT = volume_usdt,
+        TakerVolume = taker_volume,
+        TakerVolumeUSDT = taker_volume_usdt,
+        Trades = trades,
+        Filled = filled
+      )
+    )
+  )
+}

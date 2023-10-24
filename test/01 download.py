@@ -11,9 +11,13 @@ hasta '2024-01-01 00:00:00'. El par de criptomonedas elegido es 'BTCUSDT'.
 Los datos descargados se guardan en el directorio 'data/01 download'.
 GitHub sugiere que el tamaño máximo de cada archivo sea de 50 megabytes (mbytes)
 """
-
+import json
 from src.python.util.binance import download
 from src.python.util.basic import save_arrow
+
+with open('test/param.json', 'r') as json_file:
+    param = json.load(json_file)
+
 
 start = '2017-01-01 00:00:00'
 end = '2024-01-01 00:00:00'
@@ -21,8 +25,7 @@ symbol = 'BTCUSDT'
 file = 'data/01 download'
 mbytes = 50  # Tamaño recomendado por GitHub
 
-temporality = ['15m', '30m', '1h']
-for interval in temporality:
+for interval in param['temporality']:
     data = download(
         start=start,
         end=end,

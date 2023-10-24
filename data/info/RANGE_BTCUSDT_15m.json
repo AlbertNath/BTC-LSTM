@@ -1,0 +1,255 @@
+{
+    "training length": 159600,
+    "Open": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "48%"
+        },
+        "range": [
+            3166.11,
+            68718.89
+        ]
+    },
+    "High": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "48%"
+        },
+        "range": [
+            3174.78,
+            69000.0
+        ]
+    },
+    "Low": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "49%"
+        },
+        "range": [
+            3156.26,
+            68480.0
+        ]
+    },
+    "Close": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "48%"
+        },
+        "range": [
+            3167.07,
+            68718.9
+        ]
+    },
+    "Volume": {
+        "bias": "right",
+        "outliers": "8.41%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "7%"
+        },
+        "range": [
+            13.610118,
+            3614.8183994800042
+        ]
+    },
+    "Open_Log": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            8.060258983994057,
+            11.137779404024773
+        ]
+    },
+    "High_Log": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            8.062993617587454,
+            11.141861783579396
+        ]
+    },
+    "Low_Log": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            8.057143061335482,
+            11.134297010815624
+        ]
+    },
+    "Close_Log": {
+        "bias": "none",
+        "outliers": "0.0%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            8.060562149230906,
+            11.137779549545158
+        ]
+    },
+    "Volume_Log": {
+        "bias": "both",
+        "outliers": "1.5%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "3%"
+        },
+        "range": [
+            4.05420538930073,
+            8.43006680011894
+        ]
+    },
+    "Open_Norm": {
+        "bias": "both",
+        "outliers": "1.02%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -3.0324459838675675,
+            3.1334972062502433
+        ]
+    },
+    "High_Norm": {
+        "bias": "both",
+        "outliers": "1.03%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -2.982507793135289,
+            3.2093344528336627
+        ]
+    },
+    "Low_Norm": {
+        "bias": "both",
+        "outliers": "1.02%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -3.0940399979486273,
+            3.0641238223497584
+        ]
+    },
+    "Close_Norm": {
+        "bias": "both",
+        "outliers": "1.03%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -3.0392977232941574,
+            3.1384086552603954
+        ]
+    },
+    "Close_Rate": {
+        "bias": "both",
+        "outliers": "7.86%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -1.5446195733590682,
+            1.4932313113904725
+        ]
+    },
+    "Volume_Norm": {
+        "bias": "right",
+        "outliers": "7.68%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -1.3945318837731997,
+            4.316347002056487
+        ]
+    },
+    "Volume_Qty": {
+        "bias": "both",
+        "outliers": "7.31%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            0.49822084335009786,
+            0.5018408969340048
+        ]
+    },
+    "Taker_Prop": {
+        "bias": "left",
+        "outliers": "1.79%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "72%"
+        },
+        "range": [
+            0.999378698643349,
+            0.9999798694574382
+        ]
+    },
+    "Volume_Trade": {
+        "bias": "right",
+        "outliers": "2.31%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "73%"
+        },
+        "range": [
+            0.004774239191170369,
+            0.26758338056728426
+        ]
+    },
+    "Volume_Trade_Norm": {
+        "bias": "both",
+        "outliers": "1.62%",
+        "test": {
+            "Kpss": "10%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            -2.0540787107924534,
+            3.3236791330304856
+        ]
+    },
+    "Quality": {
+        "bias": "left",
+        "outliers": "6.32%",
+        "test": {
+            "Kpss": "1%",
+            "Adfuller": "0%"
+        },
+        "range": [
+            0.9730757341760967,
+            0.9999999292545206
+        ]
+    }
+}

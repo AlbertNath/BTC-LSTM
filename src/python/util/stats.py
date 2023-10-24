@@ -1,6 +1,10 @@
+from statsmodels.stats.diagnostic import normal_ad
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import kpss
 
 import pandas as pd
 import numpy as np
+import warnings
 import random
 
 # Función que calcula los estadísticos para un diagrama de caja
@@ -13,26 +17,27 @@ def boxplot(src):
     iqr = q3 - q1  # Rango intercuantil
     lower_bound = q1 - 1.5 * iqr  # Límite inferior
     upper_bound = q3 + 1.5 * iqr  # Límite superior
-    bias = "none"
+    bias = 'none'
     left = any(x < lower_bound for x in src)
     right = any(x > upper_bound for x in src)
     if left and right:
-        bias = "both"
+        bias = 'both'
     elif left:
-        bias = "left"
+        bias = 'left'
     elif right:
-        bias = "right"
+        bias = 'right'
     return {
-        "q1": q1, "q2": q2, "q3": q3, "iqr": iqr,
-        "inf": lower_bound, "sup": upper_bound,
-        "bias": bias, "left": left, 'right': right
+        'q1': q1, 'q2': q2, 'q3': q3, 'iqr': iqr,
+        'inf': lower_bound, 'sup': upper_bound,
+        'bias': bias, 'left': left, 'right': right
     }
 
 # Función que calcula el rango de confianza al nivel especificado
 
 
-def confidence_range(src, level=100):
-    box = boxplot(src)
+def confidence_range(src, level=100, box=None):
+    if not box:
+        box = boxplot(src)
     alpha = 1 - level / 100.0
     if box['left'] and not box['right']:
         return np.quantile(src, [alpha, 1])
@@ -101,7 +106,7 @@ def sma(src, n=1):
 def smd(src, n=1):
     if (n > 1):
         return sma((src-sma(src, n=n))**2, n - 1) ** 0.5
-    return pd.Series([float("nan") for _ in range(len(src))])
+    return pd.Series([float('nan') for _ in range(len(src))])
 
 
 # Función que realiza el lag de la serie de datos
@@ -109,7 +114,7 @@ def smd(src, n=1):
 def lag(src, n=0):
     if n == 0:
         return src.copy()
-    nas = pd.Series([float("nan") for _ in range(abs(n))])
+    nas = pd.Series([float('nan') for _ in range(abs(n))])
     if n > 0:
         lagged = pd.concat([nas, src[:-n]])
     else:
@@ -119,8 +124,8 @@ def lag(src, n=0):
 # Función para normalizar (de forma móvil) una serie de datos
 
 
-def normalizer(src, n, lg=1):
-    src = lag(src, lg)
+def normalizer(src, n, n_lag=1):
+    src = lag(src, n_lag)
     mean = sma(src, n)
     std = smd(src, n)
 
@@ -134,52 +139,78 @@ def normalizer(src, n, lg=1):
     }
 
 
-def scaler(data):
-    min_val = data.min()
-    max_val = data.max()
-    data_scaled = (data - min_val) / (max_val - min_val)
-    return data_scaled
-
-
-def data_transformer(data, n=2880, mindate='2018-02-10', scalet=60000):
+def data_transformer(data, n=2880, mindate='2018-02-12', test=20, level=99, scalet=60000):
     df = pd.DataFrame()
-    hl2 = (data['High'] + data['Low']) / 2
+    ####### Conjunto TOHLCV ######
     df['Time'] = data['Time']
     df['Open'] = data['Open']
     df['High'] = data['High']
     df['Low'] = data['Low']
     df['Close'] = data['Close']
+    df['Volume'] = data['Volume']
     ####### LOGARITMO DE VARIABLES ######
     df['Open_Log'] = np.log(data['Open'])
     df['High_Log'] = np.log(data['High'])
     df['Low_Log'] = np.log(data['Low'])
     df['Close_Log'] = np.log(data['Close'])
-    df['Volume_Log'] = np.log(5 + data['Volume'])
+    df['Volume_Log'] = np.log(1 + data['Volume'])
     ####### NORMALIZACIÓN DE PRECIOS ######
-    price_normalizer = normalizer(hl2, n)
-    norm = price_normalizer['norm']
+    hl2 = (data['High'] + data['Low']) / 2
+    norm = normalizer(hl2, n, n_lag=1)['norm']
     df['Open_Norm'] = norm(data['Open'])
     df['High_Norm'] = norm(data['High'])
     df['Low_Norm'] = norm(data['Low'])
     df['Close_Norm'] = norm(data['Close'])
+    df['Close_Rate'] = 100 * (data['Close'] / lag(data['Close'], 1) - 1)
     ####### NORMALIZACIÓN DE VOLUMEN ######
-    volume_normalizer = normalizer(
-        data['Volume'], n)  # normalizador de precios
-    df['Volume_Norm'] = volume_normalizer['norm'](data['Volume'])
+    norm = normalizer(data['Volume'], n, n_lag=0)['norm']
+    df['Volume_Norm'] = norm(data['Volume'])
     ####### TRANSFORMACIÓN DE VARIABLES ######
-    df['Filled_MA'] = ema(data['Filled'], 2 * n - 2)
     df['Volume_Qty'] = (data['Volume'] /
                         (data['Volume'] + data['VolumeUSDT'] / data['Close']))
     df['Taker_Prop'] = (data['TakerVolumeUSDT'] /
                         (data['Volume'] + data['TakerVolumeUSDT']))
     df['Volume_Trade'] = data['Volume'] / data['Trades']
+    norm = normalizer(df['Volume_Trade'], n, n_lag=0)['norm']
+    df['Volume_Trade_Norm'] = norm(df['Volume_Trade'])
+    df['Quality'] = ema(1-data['Filled'], 2 * n - 2)
     mintime = pd.Timestamp(mindate).timestamp() * 1000 / scalet
     minindex = max(2 * n - 2, (data['Time'] >= mintime).idxmax())
-    time = df['Time']
-    df = scaler(df.iloc[minindex:])
-    df['Time'] = time
+    df = df.iloc[minindex:]
+    ####### Rangos de estandarización ######
+    training = int(len(df)*(1-test/100))
+    dict = {'training length': training}
+    time = df["Time"][0:training]
+    for name in df.columns[1:]:
+        value = df[name][0:training]
+        box = boxplot(value)
+        bias = box['bias']
+        if bias == 'none':
+            rang = confidence_range(value, 100, box)
+        else:
+            rang = confidence_range(value, level, box)
+        outliers = round(
+            100*(
+                sum(value > box['sup']) +
+                sum(value < box['inf'])
+            )/len(value), 2)
+        window = 1000
+        sd = value.rolling(window=window).std().dropna().to_numpy()[::window]
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore')
+            kps = kpss(sd, regression='c')[1]
+
+        adf = adfuller(sd)[1]
+
+        dict[name] = {'bias': bias,
+                      'outliers': str(outliers) + '%',
+                      'test': {
+                          'Kpss': str(round(100*kps)) + '%',
+                          'Adfuller': str(round(100*adf)) + '%'
+                      },
+                      'range': rang.tolist()
+                      }
     return {
-        "data": df,
-        "price_normalizer": price_normalizer,
-        "volume_normalizer": volume_normalizer
+        'data': df,
+        'range': dict
     }
