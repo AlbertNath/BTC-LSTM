@@ -4,9 +4,11 @@
         "30m",
         "1h"
     ],
-    "start date": "2017-01-01 00:00:00",
+    "start date": "2017-06-01 00:00:00",
     "end date": "2024-01-01 00:00:00",
-    "market symbol": "BTCUSDT",
+    "market symbols": [
+        "BTCUSDT"
+    ],
     "time scale": 60000,
     "megabytes limit": 50,
     "download file": "data/01 download",
@@ -15,6 +17,22 @@
     "info file": "data/info",
     "minimum date": "2018-02-12",
     "normalization window": 2880,
-    "confidence range level": 99,
-    "test data ratio": 20
+    "original columns": [
+        "Time",
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume"
+    ],
+    "help columns": [
+        "Open_Norm",
+        "High_Norm",
+        "Low_Norm",
+        "Close_Norm",
+        "Close_Rate",
+        "Volume_Log",
+        "Volume_Qty",
+        "Volume_Trade_Norm"
+    ]
 }

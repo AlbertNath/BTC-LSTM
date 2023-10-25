@@ -256,13 +256,15 @@ fix_zeros <- function(src) {
   difzero <- diff(src == 0)
   start <- 1 + which((difzero == 1))
   end <- (which(difzero == -1))
-  end <- if (start[1] > end[1]) end[-1] else end
-  end <- if (length(start) > length(end)) c(end, length(src)) else end
-  n <- length(start)
-  for (i in 1:n) {
-    ival <- start[i]:end[i]
-    lag_ival <- ival - end[i] + start[i] - 1
-    src[ival] <- mean(src[lag_ival], na.rm = TRUE)
+  if(length(end) > 0){
+    end <- if (start[1] > end[1]) end[-1] else end
+    end <- if (length(start) > length(end)) c(end, length(src)) else end
+    n <- length(start)
+    for (i in 1:n) {
+      ival <- start[i]:end[i]
+      lag_ival <- ival - end[i] + start[i] - 1
+      src[ival] <- mean(src[lag_ival], na.rm = TRUE)
+    }
   }
   src
 }
@@ -346,3 +348,4 @@ clean_data <- function(data, left.lag = 1, right.lag = 2, scalet = 60000) { # no
     )
   )
 }
+start

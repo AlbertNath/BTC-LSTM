@@ -1,4 +1,3 @@
-from statsmodels.stats.diagnostic import normal_ad
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.stattools import kpss
 
@@ -139,7 +138,7 @@ def normalizer(src, n, n_lag=1):
     }
 
 
-def data_transformer(data, n=2880, mindate='2018-02-12', level=99, test=20, timescale=60000):
+def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
     df = pd.DataFrame()
     ####### Conjunto TOHLCV ######
     df['Time'] = data['Time']
@@ -177,40 +176,30 @@ def data_transformer(data, n=2880, mindate='2018-02-12', level=99, test=20, time
     mintime = pd.Timestamp(mindate).timestamp() * 1000 / timescale
     minindex = max(2 * n - 2, (data['Time'] >= mintime).idxmax())
     df = df.iloc[minindex:]
-    ####### Rangos de estandarización ######
-    training = int(len(df)*(1-test/100))
-    dict = {'training length': training}
-    time = df["Time"][0:training]
+    df.reset_index(drop=True, inplace=True)
+    return df
+    ####### Test ######
+    dict = {}
     for name in df.columns[1:]:
-        value = df[name][0:training]
+        value = df[name]
         box = boxplot(value)
         bias = box['bias']
-        if bias == 'none':
-            rang = confidence_range(value, 100, box)
-        else:
-            rang = confidence_range(value, level, box)
         outliers = round(
             100*(
                 sum(value > box['sup']) +
                 sum(value < box['inf'])
             )/len(value), 2)
         window = 1000
-        sd = value.rolling(window=window).std().dropna().to_numpy()[::window]
+        sd = value.rolling(window=window).std(
+        ).dropna().to_numpy()[::window]
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore')
             kps = kpss(sd, regression='c')[1]
-
         adf = adfuller(sd)[1]
-
         dict[name] = {'bias': bias,
-                      'outliers': str(outliers) + '%',
-                      'test': {
-                          'Kpss': str(round(100*kps)) + '%',
-                          'Adfuller': str(round(100*adf)) + '%'
-                      },
-                      'range': rang.tolist()
-                      }
-    return {
-        'data': df,
-        'range': dict
-    }
+                        'outliers': str(outliers) + '%',
+                        'test': {
+                            'Kpss': str(round(100*kps)) + '%',
+                            'Adfuller': str(round(100*adf)) + '%'
+                        }
+                        }

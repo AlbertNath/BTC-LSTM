@@ -11,15 +11,16 @@
 
 ##### limpieza ####
 source("src/r/util/basic.R")
+par <- load_parameters()
 
-par <- jsonlite::fromJSON("src/python/util/parameters.json")
-
-for (temp in par$temporality) {
-  name <- paste0(par$"market symbol", "_", temp)
-  clean <- clean_data(load_arrow(par$"download file", name))
-  save_arrow(clean$data, par$"clean file", name, par$"megabytes limit")
-  write.csv(
-    clean$block,
-    file.path(par$"info file", paste0("BLOCK_", symbol, "_", temp, ".csv"))
-  )
+for(symbol in par$"market symbols"){
+  for (temp in par$temporality) {
+    name <- paste0(symbol, "_", temp)
+    clean <- clean_data(load_arrow(par$"download file", name))
+    save_arrow(clean$data, par$"clean file", name, par$"megabytes limit")
+    write.csv(
+      clean$block,
+      file.path(par$"info file", paste0("BLOCK_", symbol, "_", temp, ".csv"))
+    )
+  }
 }

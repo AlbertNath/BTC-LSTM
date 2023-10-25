@@ -1,8 +1,10 @@
-import re
-import os
+
+import pandas as pd
+import numpy as np
 import math
 import json
-import pandas as pd
+import re
+import os
 
 
 # Función para guardar una base de datos en sub-bases de tamaño máximo
@@ -50,3 +52,30 @@ def save_json(file, dict):
 def load_json(file):
     with open(file, 'r') as file:
         return json.load(file)
+
+
+def load_parameters():
+    return load_json('src/python/util/parameters.json')
+
+
+def get_datasets(symbol, interval, subsets=None, variables=[], isolated=False):
+    par = load_parameters()
+    if symbol not in par['market symbols']:
+        raise Exception(
+            f'Error: Market symbol "{symbol}" not found. \n\tPlease check the "src/python/util/parameters.json" file.')
+
+    if interval not in par['temporality']:
+        raise Exception(
+            f'Error: Temporality "{interval}" not found. \n\tPlease check the "src/python/util/parameters.json" file.')
+    data = load_arrow(par['transform file'], symbol + '_' + interval)
+    data = data[[
+        "Time",
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume"
+    ] + variables]
+    if not subsets:
+        return data
+    return data
