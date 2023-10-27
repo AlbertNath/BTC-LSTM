@@ -58,7 +58,7 @@ def load_parameters():
     return load_json('src/python/util/parameters.json')
 
 
-def get_datasets(symbol, interval, subsets=None, variables=[], isolated=False):
+def get_datasets(symbol, interval, variables=[], subsets=None, isolated=False, conf_level=99):
     par = load_parameters()
     if symbol not in par['market symbols']:
         raise Exception(
@@ -69,13 +69,45 @@ def get_datasets(symbol, interval, subsets=None, variables=[], isolated=False):
             f'Error: Temporality "{interval}" not found. \n\tPlease check the "src/python/util/parameters.json" file.')
     data = load_arrow(par['transform file'], symbol + '_' + interval)
     data = data[[
-        "Time",
-        "Open",
-        "High",
-        "Low",
-        "Close",
-        "Volume"
+        'Time',
+        'Open',
+        'High',
+        'Low',
+        'Close',
+        'Volume'
     ] + variables]
-    if not subsets:
-        return data
+    if subsets:
+        sizes = np.array([subsets[x] for x in subsets])
+        if sum(sizes) > len(data):
+            raise Exception(
+                'The total size of subsets is greater than the length of the data.')
+        if any(sizes <= 0):
+            raise Exception('Some subset size is zero or negative.')
+        time = pd.to_datetime(data['Time']*par['time scale'], unit='ms')
+        index = np.append(0, np.cumsum(sizes))
+        subdata = [data.iloc[index[i-1]:index[i]]
+                   for i in range(1, len(index))]
+
+        excedent = len(data) - sum(sizes)
+        sizes = np.append(sizes, excedent)
+        index = np.append(0, np.cumsum(sizes))
+        prop = np.round(100*sizes/len(data), 2)
+
+        if excedent > 0:
+            time = [time[index[i-1]] for i in range(1, len(index))]
+        else:
+            time = [time[index[i-1]] for i in range(1, len(index)-1)] + ['-']
+
+        for names in variables:
+            print(names)
+
+        ###########
+        status = pd.DataFrame()
+        status["set"] = [x for x in subsets] + ['no assigned']
+        status["size"] = sizes
+        status["prop"] = [str(x)+"%" for x in prop]
+        status["time"] = time
+        print(status.to_string())
+        return tuple(subdata)
+
     return data

@@ -16,23 +16,5 @@
     "transform file": "data/03 transform",
     "info file": "data/info",
     "minimum date": "2018-02-12",
-    "normalization window": 2880,
-    "original columns": [
-        "Time",
-        "Open",
-        "High",
-        "Low",
-        "Close",
-        "Volume"
-    ],
-    "help columns": [
-        "Open_Norm",
-        "High_Norm",
-        "Low_Norm",
-        "Close_Norm",
-        "Close_Rate",
-        "Volume_Log",
-        "Volume_Qty",
-        "Volume_Trade_Norm"
-    ]
+    "normalization window": 2880
 }
