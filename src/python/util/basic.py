@@ -1,4 +1,6 @@
 
+from src.python.util.stats import confidence_range
+
 import pandas as pd
 import numpy as np
 import math
@@ -58,7 +60,7 @@ def load_parameters():
     return load_json('src/python/util/parameters.json')
 
 
-def get_datasets(symbol, interval, variables=[], subsets=None, isolated=False, conf_level=99):
+def datasets(symbol, interval, variables=[], subsets=[], conf_level=99, isolated=False):
     par = load_parameters()
     if symbol not in par['market symbols']:
         raise Exception(
@@ -77,7 +79,7 @@ def get_datasets(symbol, interval, variables=[], subsets=None, isolated=False, c
         'Volume'
     ] + variables]
     if subsets:
-        sizes = np.array([subsets[x] for x in subsets])
+        sizes = np.array(subsets)  # np.array([subsets[x] for x in subsets])
         if sum(sizes) > len(data):
             raise Exception(
                 'The total size of subsets is greater than the length of the data.')
@@ -98,15 +100,25 @@ def get_datasets(symbol, interval, variables=[], subsets=None, isolated=False, c
         else:
             time = [time[index[i-1]] for i in range(1, len(index)-1)] + ['-']
 
-        for names in variables:
-            print(names)
+        if isolated:
+            for data in subdata:
+                for name in variables:
+                    rang = confidence_range(data[name], conf_level)
+                    data[name] = (data[name]-rang[0])/(rang[1]-rang[0])
+        else:
+            ranges = [confidence_range(subdata[0][name], conf_level)
+                      for name in variables]
+            for data in subdata:
+                for name, rang in zip(variables, ranges):
+                    data[name] = (data[name]-rang[0])/(rang[1]-rang[0])
 
         ###########
         status = pd.DataFrame()
-        status["set"] = [x for x in subsets] + ['no assigned']
         status["size"] = sizes
         status["prop"] = [str(x)+"%" for x in prop]
         status["time"] = time
+        status.index = ['ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i]
+                        for i in range(len(status)-1)] + ['not assigned']
         print(status.to_string())
         return tuple(subdata)
 
