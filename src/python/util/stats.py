@@ -167,8 +167,7 @@ def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
     ####### TRANSFORMACIÓN DE VARIABLES ######
     df['Volume_Qty'] = (data['Volume'] /
                         (data['Volume'] + data['VolumeUSDT'] / data['Close']))
-    df['Taker_Prop'] = (data['TakerVolumeUSDT'] /
-                        (data['Volume'] + data['TakerVolumeUSDT']))
+    df['Taker_Prop'] = data['TakerVolume'] / data['Volume']
     df['Volume_Trade'] = data['Volume'] / data['Trades']
     norm = normalizer(df['Volume_Trade'], n, n_lag=0)['norm']
     df['Volume_Trade_Norm'] = norm(df['Volume_Trade'])
@@ -197,9 +196,9 @@ def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
             kps = kpss(sd, regression='c')[1]
         adf = adfuller(sd)[1]
         dict[name] = {'bias': bias,
-                        'outliers': str(outliers) + '%',
-                        'test': {
-                            'Kpss': str(round(100*kps)) + '%',
-                            'Adfuller': str(round(100*adf)) + '%'
-                        }
-                        }
+                      'outliers': str(outliers) + '%',
+                      'test': {
+                          'Kpss': str(round(100*kps)) + '%',
+                          'Adfuller': str(round(100*adf)) + '%'
+                      }
+                      }
