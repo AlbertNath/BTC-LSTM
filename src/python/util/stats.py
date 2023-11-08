@@ -154,21 +154,20 @@ def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
     df['Close_Log'] = np.log(data['Close'])
     df['Volume_Log'] = np.log(1 + data['Volume'])
     ####### NORMALIZACIÓN DE PRECIOS ######
-    hl2 = (data['High'] + data['Low']) / 2
-    norm = normalizer(hl2, n, n_lag=1)['norm']
+    norm = normalizer(data['Close'], n, n_lag=1)['norm']
     df['Open_Norm'] = norm(data['Open'])
     df['High_Norm'] = norm(data['High'])
     df['Low_Norm'] = norm(data['Low'])
     df['Close_Norm'] = norm(data['Close'])
-    df['Close_Rate'] = 100 * (data['Close'] / lag(data['Close'], 1) - 1)
     ####### NORMALIZACIÓN DE VOLUMEN ######
     norm = normalizer(data['Volume'], n, n_lag=0)['norm']
     df['Volume_Norm'] = norm(data['Volume'])
     ####### TRANSFORMACIÓN DE VARIABLES ######
+    df['Close_Rate'] = 100 * (data['Close'] / lag(data['Close'], 1) - 1)
     df['Volume_Qty'] = (data['Volume'] /
                         (data['Volume'] + data['VolumeUSDT'] / data['Close']))
-    df['Taker_Prop'] = data['TakerVolume'] / data['Volume']
-    df['Volume_Trade'] = data['Volume'] / data['Trades']
+    df['Taker_Prop'] = 100 * data['TakerVolume'] / data['Volume']
+    df['Volume_Trade'] = 100 * data['Volume'] / data['Trades']
     norm = normalizer(df['Volume_Trade'], n, n_lag=0)['norm']
     df['Volume_Trade_Norm'] = norm(df['Volume_Trade'])
     df['Quality'] = ema(1-data['Filled'], 2 * n - 2)
