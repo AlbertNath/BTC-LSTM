@@ -16,7 +16,7 @@ for symbol in par['market symbols']:
             file=par["clean file"],
             name=symbol + '_' + interval
         )
-        data = data_transformer(
+        data, norm = data_transformer(
             clean,
             n=par["normalization window"],
             mindate=par["minimum date"],
@@ -28,5 +28,9 @@ for symbol in par['market symbols']:
             name=symbol + '_' + interval,
             mbytes=par["megabytes limit"]
         )
-        # json_file = os.path.join(par["info file"], "TEST_" + symbol + '_' + interval + '.json')
-        # save_json(json_file,  transf['test'])
+        save_arrow(
+            data=norm,
+            file=par["info file"],
+            name='NORM'+ '_' + symbol + '_' + interval,
+            mbytes=par["megabytes limit"]
+        )
