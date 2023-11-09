@@ -99,7 +99,7 @@ def datasets(symbol, interval, variables=[], subsets=[], conf_level=99, isolated
     else:
         time = [time[index[i - 1]] for i in range(1, len(index) - 1)] + ['-']
 
-    #### Estandarización ####
+    ######## Estandarización ########
     def stand_ranges(df, name):
         if name == 'Noise':
             return np.array([0, 1])
@@ -113,21 +113,55 @@ def datasets(symbol, interval, variables=[], subsets=[], conf_level=99, isolated
         [[stand_ranges(data, name) for name in variables]
          for data in stand_subdata], columns=variables)
 
-    print(ranges.to_string())
     for index, df in enumerate(subdata):
         for name in variables:
             rang = ranges.loc[index, name]
             df.loc[:, name] = (df[name] - rang[0]) / (rang[1] - rang[0])
 
-    #### Desnormalización ####
-    # denormalizer
+    ######## Resumen ########
+    summary = pd.DataFrame()
+    summary["size"] = sizes
+    summary["prop"] = [str(x) + "%" for x in prop]
+    summary["time"] = time
+    summary.index = ['ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i]
+                     for i in range(len(summary) - 1)] + ['not assigned']
+    print(summary.to_string())
 
-    ###########
-    status = pd.DataFrame()
-    status["size"] = sizes
-    status["prop"] = [str(x) + "%" for x in prop]
-    status["time"] = time
-    status.index = ['ABCDEFGHIJKLMNOPQRSTUVWXYZ'[i]
-                    for i in range(len(status) - 1)] + ['not assigned']
-    print(status.to_string())
-    return tuple(subdata) if len(subdata) > 1 else subdata[0]
+    ######## Desnormalización ########
+    normstats = load_arrow(file=par['info file'],
+                           name='NORM' + '_' + symbol + '_' + interval)
+    norm_window = par["normalization window"]
+
+    def inverse(src, time):
+        for index in range(len(subdata)):
+            if time in subdata[index]['Time'].values:
+                rang = ranges.loc[index, 'Close_Norm']
+                break
+            else:
+                raise Exception('"time" not found.')
+        # Índices históricos
+        start = norm_window - 1
+        b_index = np.where(normstats["time"] == time)[0][0]
+        a_index = b_index - start
+
+        # Serie histórica
+        close = np.concatenate(
+            [normstats["src"].iloc[a_index: b_index], rang[0] + (rang[1] - rang[0]) * src])
+        sqdif = np.concatenate(
+            [(normstats["src"].iloc[a_index: b_index] -
+              normstats["mean"].iloc[a_index: b_index]) ** 2.0,
+             np.array([np.nan] * len(src))
+             ])
+        # Des-estandarización
+        close[start] = (normstats["mean"].iloc[b_index - 1] +
+                        normstats["std"].iloc[b_index - 1] * close[start])
+
+        for i in range(start + 1, len(close)):
+            mean = close[i - norm_window: i].mean()
+            sqdif[i - 1] = (close[i - 1] - mean) ** 2.0
+            sd = (sqdif[i - norm_window + 1: i].mean()) ** 0.5
+            close[i] = mean + sd * close[i]
+            src = src.copy()
+            src[:] = close[start:]
+        return src
+    return tuple(subdata + [inverse])

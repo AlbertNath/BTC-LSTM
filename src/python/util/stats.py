@@ -138,7 +138,7 @@ def normalizer(src, n, n_lag=1):
     }
 
 
-def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
+def data_transformer(data, n, mindate, timescale):
     df = pd.DataFrame()
     ####### Conjunto TOHLCV ######
     df['Time'] = data['Time']
