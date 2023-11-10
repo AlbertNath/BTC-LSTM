@@ -1,4 +1,6 @@
 # Ignorar archivos personales
+.tmp.drivedownload/
+.tmp.driveupload/
 .itz/
 .R
 .py
