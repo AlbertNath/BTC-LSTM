@@ -101,10 +101,9 @@ def sma(src, n=1):
 
 
 # Función que calcula la Desviación Móvil Simple (SMD)
-
 def smd(src, n=1):
     if (n > 1):
-        return sma((src-sma(src, n=n))**2, n - 1) ** 0.5
+        return sma((src - sma(src, n=n)) ** 2, n - 1) ** 0.5
     return pd.Series([float('nan') for _ in range(len(src))])
 
 
@@ -124,21 +123,22 @@ def lag(src, n=0):
 
 
 def normalizer(src, n, n_lag=1):
-    src = lag(src, n_lag)
     mean = sma(src, n)
     std = smd(src, n)
+    mean_lag = lag(mean, n_lag)
+    std_lag = lag(std, n_lag)
 
     def norm(src):
-        return (src-mean)/std
+        return (src - mean_lag) / std_lag
     return {
         'norm': norm,
+        'src': src,
         'mean': mean,
-        'std': std,
-        'src': src
+        'std': std
     }
 
 
-def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
+def data_transformer(data, n, mindate, timescale):
     df = pd.DataFrame()
     ####### Conjunto TOHLCV ######
     df['Time'] = data['Time']
@@ -154,29 +154,35 @@ def data_transformer(data, n=2880, mindate='2018-02-12', timescale=60000):
     df['Close_Log'] = np.log(data['Close'])
     df['Volume_Log'] = np.log(1 + data['Volume'])
     ####### NORMALIZACIÓN DE PRECIOS ######
-    hl2 = (data['High'] + data['Low']) / 2
-    norm = normalizer(hl2, n, n_lag=1)['norm']
+    price_norm = normalizer(data['Close'], n, n_lag=1)
+    norm = price_norm['norm']
     df['Open_Norm'] = norm(data['Open'])
     df['High_Norm'] = norm(data['High'])
     df['Low_Norm'] = norm(data['Low'])
     df['Close_Norm'] = norm(data['Close'])
-    df['Close_Rate'] = 100 * (data['Close'] / lag(data['Close'], 1) - 1)
     ####### NORMALIZACIÓN DE VOLUMEN ######
     norm = normalizer(data['Volume'], n, n_lag=0)['norm']
     df['Volume_Norm'] = norm(data['Volume'])
     ####### TRANSFORMACIÓN DE VARIABLES ######
+    df['Close_Rate'] = 100 * (data['Close'] / lag(data['Close'], 1) - 1)
     df['Volume_Qty'] = (data['Volume'] /
                         (data['Volume'] + data['VolumeUSDT'] / data['Close']))
-    df['Taker_Prop'] = data['TakerVolume'] / data['Volume']
-    df['Volume_Trade'] = data['Volume'] / data['Trades']
+    df['Taker_Prop'] = 100 * data['TakerVolume'] / data['Volume']
+    df['Volume_Trade'] = 100 * data['Volume'] / data['Trades']
     norm = normalizer(df['Volume_Trade'], n, n_lag=0)['norm']
     df['Volume_Trade_Norm'] = norm(df['Volume_Trade'])
-    df['Quality'] = ema(1-data['Filled'], 2 * n - 2)
+    df['Noise'] = ema(data['Filled'], 2 * n - 2)
     mintime = pd.Timestamp(mindate).timestamp() * 1000 / timescale
     minindex = max(2 * n - 2, (data['Time'] >= mintime).idxmax())
     df = df.iloc[minindex:]
     df.reset_index(drop=True, inplace=True)
-    return df
+    normst = pd.DataFrame({
+        'time': data['Time'],
+        'src': price_norm['src'],
+        'mean': price_norm['mean'],
+        'std': price_norm['std']
+    })
+    return df, normst
     ####### Test ######
     dict = {}
     for name in df.columns[1:]:
