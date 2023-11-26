@@ -164,6 +164,8 @@ def data_transformer(data, n, mindate, timescale):
     norm = normalizer(data['Volume'], n, n_lag=0)['norm']
     df['Volume_Norm'] = norm(data['Volume'])
     ####### TRANSFORMACIÓN DE VARIABLES ######
+    df['Gap'] = data['Open'] - lag(data['Close'], 1)
+    df['Gap_Rate'] = 100 * (data['Open'] / lag(data['Close'], 1) - 1)
     df['Close_Rate'] = 100 * (data['Close'] / lag(data['Close'], 1) - 1)
     df['Volume_Qty'] = (data['Volume'] /
                         (data['Volume'] + data['VolumeUSDT'] / data['Close']))
